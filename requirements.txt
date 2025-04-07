@@ -1,0 +1,13 @@
+streamlit
+fastapi
+uvicorn
+pandas
+numpy
+faiss-cpu
+tqdm
+requests
+python-dotenv
+sentence-transformers
+groq
+
+

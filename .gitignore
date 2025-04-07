@@ -1,0 +1,24 @@
+# Virtual environment
+.venv/
+venv/
+
+# Python cache files
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Environment and secret files
+.env
+
+# IDE/project files
+.idea/
+.vscode/
+
+# Large or intermediate data files
+*.csv
+*.faiss
+
+# OS files
+.DS_Store
+Thumbs.db
