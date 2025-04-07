@@ -43,6 +43,7 @@ if st.button("🚀 Get Recommendations"):
                     "https://shl-gen-ai-backend.onrender.com/recommend",
                     headers={"Content-Type": "application/json"},
                     json=payload
+                    timeout=60
                 )
 
                 if response.status_code == 200:
