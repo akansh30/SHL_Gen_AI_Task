@@ -94,7 +94,6 @@ An intelligent recommendation system that takes a natural language job descripti
 > **Note:** Please open the API URL once to warm up the backend before using the Streamlit app (Render free-tier may have cold start delay).
 
 ---
-```
 
 ## 📦 How to Run Locally
 
