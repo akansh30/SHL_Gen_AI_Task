@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List
 import os
@@ -7,19 +8,33 @@ import pandas as pd
 from sentence_transformers import SentenceTransformer
 import difflib
 from llm_query_parser import get_structured_prompt, query_groq_llm
-from huggingface_hub import cached_download
+import traceback
 
+# Initialize app
 app = FastAPI()
+
+# Enable CORS for frontend access (like Streamlit)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Replace with Streamlit domain if you want to restrict
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Paths
 BASE_DIR = os.path.dirname(__file__)
 INDEX_PATH = os.path.join(BASE_DIR, "shl_index.faiss")
 CSV_PATH = os.path.join(BASE_DIR, "shl_assessments_with_ids.csv")
 
+# Debug logs for Render
+print("Loading FAISS index from:", INDEX_PATH)
+print("Loading CSV from:", CSV_PATH)
+
 # HuggingFace cache fix for Render
 os.environ["TRANSFORMERS_CACHE"] = "./hf_cache"
 
-# Load model and index
+# Load model and data
 model = SentenceTransformer('all-MiniLM-L6-v2')
 index = faiss.read_index(INDEX_PATH)
 df = pd.read_csv(CSV_PATH)
@@ -31,28 +46,31 @@ class Query(BaseModel):
 class AssessmentOut(BaseModel):
     assessment_name: str
     url: str
-    remote: str  # Use "Yes"/"No"
+    remote: str  # "Yes" or "No"
     adaptive: str
     duration: str
     test_type: str
 
+# Healthcheck
 @app.get("/")
 def home():
     return {"message": "SHL Recommender API is running"}
 
+# Main recommendation endpoint
 @app.post("/recommend", response_model=List[AssessmentOut])
 def recommend(query: Query):
     print("Received query:", query.text)
 
-    # Step 1: LLM Parse
+    # Step 1: Parse with LLM
     prompt = get_structured_prompt(query.text)
     print("Prompt to LLM:", prompt)
-    
+
     try:
         parsed = query_groq_llm(prompt)
         print("LLM Parsed:", parsed)
     except Exception as e:
-        print("Error calling Groq LLM:", str(e))
+        print("LLM ERROR:", str(e))
+        traceback.print_exc()
         parsed = {
             "skills": [],
             "traits": [],
@@ -65,7 +83,7 @@ def recommend(query: Query):
     duration_limit = parsed.get("duration_limit", None)
     remote_required = parsed.get("remote", None)
 
-    # Step 2: Enhanced query for embedding
+    # Step 2: Build enhanced query
     enhanced_query = f"A {' and '.join(traits)} role needing {' and '.join(skills)} assessments"
     if duration_limit:
         enhanced_query += f" under {duration_limit} minutes"
@@ -74,12 +92,12 @@ def recommend(query: Query):
 
     print("Enhanced Query:", enhanced_query)
 
-    # Step 3: Embedding + Vector Search
+    # Step 3: FAISS vector search
     vector = model.encode([enhanced_query])
     top_k = min(200, index.ntotal)
     D, I = index.search(vector, top_k)
 
-    # Step 4: Post-filter using structured fields
+    # Step 4: Post-filter results
     seen_names = []
     results = []
 
@@ -116,6 +134,6 @@ def recommend(query: Query):
         ))
 
         if len(results) >= 10:
-            break
+            break  # Remove this line if you want unlimited results
 
     return results
