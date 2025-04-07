@@ -40,7 +40,7 @@ if st.button("🚀 Get Recommendations"):
 
                 # Call recommender API
                 response = requests.post(
-                    "http://127.0.0.1:8000/recommend",
+                    "https://shl-gen-ai-backend.onrender.com/recommend",
                     headers={"Content-Type": "application/json"},
                     json=payload
                 )
