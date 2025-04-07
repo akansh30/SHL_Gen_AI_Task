@@ -9,6 +9,7 @@ requests
 python-dotenv
 sentence-transformers==2.2.2
 transformers>=4.38
+huggingface_hub==0.14.1
 groq
 
 
