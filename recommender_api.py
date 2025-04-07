@@ -42,12 +42,23 @@ def home():
 
 @app.post("/recommend", response_model=List[AssessmentOut])
 def recommend(query: Query):
+    print("Received query:", query.text)
+
     # Step 1: LLM Parse
     prompt = get_structured_prompt(query.text)
-    parsed = query_groq_llm(prompt)
-
-    # Optional: Print for debugging
-    print("LLM Parsed:", parsed)
+    print("Prompt to LLM:", prompt)
+    
+    try:
+        parsed = query_groq_llm(prompt)
+        print("LLM Parsed:", parsed)
+    except Exception as e:
+        print("Error calling Groq LLM:", str(e))
+        parsed = {
+            "skills": [],
+            "traits": [],
+            "duration_limit": None,
+            "remote": None
+        }
 
     skills = parsed.get("skills", [])
     traits = parsed.get("traits", [])
@@ -60,6 +71,8 @@ def recommend(query: Query):
         enhanced_query += f" under {duration_limit} minutes"
     if remote_required:
         enhanced_query += " with remote testing"
+
+    print("Enhanced Query:", enhanced_query)
 
     # Step 3: Embedding + Vector Search
     vector = model.encode([enhanced_query])
@@ -75,11 +88,9 @@ def recommend(query: Query):
         name = row.get("Assessment Name", "")
         url = str(row.get("URL", ""))
 
-        # Fuzzy duplicate check
         if any(difflib.SequenceMatcher(None, name, existing).ratio() > 0.9 for existing in seen_names):
             continue
 
-        # Apply duration + remote filters
         duration = row.get("Assessment Length", None)
         is_remote = row.get("Remote", False)
 
