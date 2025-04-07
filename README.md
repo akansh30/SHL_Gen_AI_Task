@@ -85,15 +85,13 @@ An intelligent recommendation system that takes a natural language job descripti
 
 ## 🌐 Live Links
 
-| Purpose            | URL                                                                 |
-|--------------------|----------------------------------------------------------------------|
-| Streamlit Frontend | [https://shl-gen-ai.streamlit.app](https://shl-gen-ai.streamlit.app) |
-| FastAPI Backend    | [https://shl-gen-ai-backend.onrender.com/recommend](https://shl-gen-ai-backend.onrender.com/recommend) |
-| GitHub Repo        | [https://github.com/akansh30/SHL_Gen_AI_Task](https://github.com/akansh30/SHL_Gen_AI_Task) |
+- **Streamlit Frontend:** https://shl-gen-ai.streamlit.app  
+- **FastAPI Backend:** https://shl-gen-ai-backend.onrender.com/recommend  
+- **GitHub Repository:** https://github.com/akansh30/SHL_Gen_AI_Task
 
-> **Note:** Please open the API URL once to warm up the backend before using the Streamlit app (Render free-tier may have cold start delay).
+> **Note:** Open the API URL once before using the Streamlit app to avoid cold-start delay.
 
----
+```
 
 ## 📦 How to Run Locally
 
