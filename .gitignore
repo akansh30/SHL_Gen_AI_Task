@@ -19,6 +19,8 @@ __pycache__/
 # (Keep only the ones you need)
 shl_assessments_progress.csv
 
+!hf_cache/
+
 # OS files
 .DS_Store
 Thumbs.db
