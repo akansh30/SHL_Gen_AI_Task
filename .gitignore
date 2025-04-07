@@ -16,8 +16,8 @@ __pycache__/
 .vscode/
 
 # Large or intermediate data files
-*.csv
-*.faiss
+# (Keep only the ones you need)
+shl_assessments_progress.csv
 
 # OS files
 .DS_Store
