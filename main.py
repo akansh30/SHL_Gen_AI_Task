@@ -42,7 +42,7 @@ if st.button("🚀 Get Recommendations"):
                 response = requests.post(
                     "https://shl-gen-ai-backend.onrender.com/recommend",
                     headers={"Content-Type": "application/json"},
-                    json=payload
+                    json=payload,
                     timeout=60
                 )
 
