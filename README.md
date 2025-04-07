@@ -82,7 +82,7 @@ An intelligent recommendation system that takes a natural language job descripti
 ├── requirements.txt
 ├── .gitignore
 └── build.sh                    # Build script for deployment
-
+``` 
 ## 🌐 Live Links
 
 - **Streamlit Frontend:** https://shl-gen-ai.streamlit.app  
@@ -91,7 +91,7 @@ An intelligent recommendation system that takes a natural language job descripti
 
 > **Note:** Open the API URL once before using the Streamlit app to avoid cold-start delay.
 
-```
+
 
 ## 📦 How to Run Locally
 
