@@ -7,6 +7,7 @@ import pandas as pd
 from sentence_transformers import SentenceTransformer
 import difflib
 from llm_query_parser import get_structured_prompt, query_groq_llm
+from huggingface_hub import cached_download
 
 app = FastAPI()
 
