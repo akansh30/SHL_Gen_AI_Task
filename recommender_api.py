@@ -7,7 +7,7 @@ import faiss
 import pandas as pd
 from sentence_transformers import SentenceTransformer
 import difflib
-from llm_query_parser import get_structured_prompt, query_groq_llm
+# from llm_query_parser import get_structured_prompt, query_groq_llm  # Disable if using dummy
 import traceback
 
 # Initialize app
@@ -16,7 +16,7 @@ app = FastAPI()
 # Enable CORS for frontend access (like Streamlit)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Replace with Streamlit domain if you want to restrict
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -27,14 +27,13 @@ BASE_DIR = os.path.dirname(__file__)
 INDEX_PATH = os.path.join(BASE_DIR, "shl_index.faiss")
 CSV_PATH = os.path.join(BASE_DIR, "shl_assessments_with_ids.csv")
 
-# Debug logs for Render
-print("Loading FAISS index from:", INDEX_PATH)
-print("Loading CSV from:", CSV_PATH)
-
 # HuggingFace cache fix for Render
 os.environ["TRANSFORMERS_CACHE"] = "./hf_cache"
 
 # Load model and data
+print("Loading FAISS index from:", INDEX_PATH)
+print("Loading CSV from:", CSV_PATH)
+
 model = SentenceTransformer('all-MiniLM-L6-v2')
 index = faiss.read_index(INDEX_PATH)
 df = pd.read_csv(CSV_PATH)
@@ -46,13 +45,14 @@ class Query(BaseModel):
 class AssessmentOut(BaseModel):
     assessment_name: str
     url: str
-    remote: str  # "Yes" or "No"
+    remote: str
     adaptive: str
     duration: str
     test_type: str
 
 # Healthcheck
-@app.get("/")
+@app.get("/", include_in_schema=False)
+@app.head("/", include_in_schema=False)  # ✅ Fixes 405 on Render health check
 def home():
     return {"message": "SHL Recommender API is running"}
 
@@ -61,13 +61,19 @@ def home():
 def recommend(query: Query):
     print("Received query:", query.text)
 
-    # Step 1: Parse with LLM
-    prompt = get_structured_prompt(query.text)
-    print("Prompt to LLM:", prompt)
-
+    # Step 1: Parse with LLM (or dummy for now)
     try:
-        parsed = query_groq_llm(prompt)
-        print("LLM Parsed:", parsed)
+        # prompt = get_structured_prompt(query.text)
+        # parsed = query_groq_llm(prompt)  # ❌ Temporarily comment this out
+
+        # ✅ Dummy parsed data for testing without LLM
+        parsed = {
+            "skills": ["communication", "project management"],
+            "traits": ["client-facing"],
+            "duration_limit": 50,
+            "remote": False
+        }
+        print("LLM Parsed (Dummy):", parsed)
     except Exception as e:
         print("LLM ERROR:", str(e))
         traceback.print_exc()
@@ -134,6 +140,6 @@ def recommend(query: Query):
         ))
 
         if len(results) >= 10:
-            break  # Remove this line if you want unlimited results
+            break
 
     return results
