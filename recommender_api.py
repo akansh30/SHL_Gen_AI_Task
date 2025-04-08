@@ -7,13 +7,13 @@ import faiss
 import pandas as pd
 from sentence_transformers import SentenceTransformer
 import difflib
-# from llm_query_parser import get_structured_prompt, query_groq_llm  # Disable if using dummy
+# from llm_query_parser import get_structured_prompt, query_groq_llm
 import traceback
 
 # Initialize app
 app = FastAPI()
 
-# Enable CORS for frontend access (like Streamlit)
+# Enable CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -27,14 +27,15 @@ BASE_DIR = os.path.dirname(__file__)
 INDEX_PATH = os.path.join(BASE_DIR, "shl_index.faiss")
 CSV_PATH = os.path.join(BASE_DIR, "shl_assessments_with_ids.csv")
 
-# HuggingFace cache fix for Render
+# HuggingFace cache & auth setup
 os.environ["TRANSFORMERS_CACHE"] = "./hf_cache"
+HF_TOKEN = os.getenv("HUGGINGFACE_HUB_TOKEN")
 
 # Load model and data
 print("Loading FAISS index from:", INDEX_PATH)
 print("Loading CSV from:", CSV_PATH)
 
-model = SentenceTransformer('all-MiniLM-L6-v2')
+model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2', use_auth_token=HF_TOKEN)
 index = faiss.read_index(INDEX_PATH)
 df = pd.read_csv(CSV_PATH)
 
@@ -50,23 +51,17 @@ class AssessmentOut(BaseModel):
     duration: str
     test_type: str
 
-# Healthcheck
 @app.get("/", include_in_schema=False)
-@app.head("/", include_in_schema=False)  # ✅ Fixes 405 on Render health check
+@app.head("/", include_in_schema=False)
 def home():
     return {"message": "SHL Recommender API is running"}
 
-# Main recommendation endpoint
 @app.post("/recommend", response_model=List[AssessmentOut])
 def recommend(query: Query):
     print("Received query:", query.text)
 
-    # Step 1: Parse with LLM (or dummy for now)
+    # Step 1: Parse with LLM (disabled for now)
     try:
-        # prompt = get_structured_prompt(query.text)
-        # parsed = query_groq_llm(prompt)  # ❌ Temporarily comment this out
-
-        # ✅ Dummy parsed data for testing without LLM
         parsed = {
             "skills": ["communication", "project management"],
             "traits": ["client-facing"],
@@ -89,7 +84,6 @@ def recommend(query: Query):
     duration_limit = parsed.get("duration_limit", None)
     remote_required = parsed.get("remote", None)
 
-    # Step 2: Build enhanced query
     enhanced_query = f"A {' and '.join(traits)} role needing {' and '.join(skills)} assessments"
     if duration_limit:
         enhanced_query += f" under {duration_limit} minutes"
@@ -98,12 +92,10 @@ def recommend(query: Query):
 
     print("Enhanced Query:", enhanced_query)
 
-    # Step 3: FAISS vector search
     vector = model.encode([enhanced_query])
     top_k = min(200, index.ntotal)
     D, I = index.search(vector, top_k)
 
-    # Step 4: Post-filter results
     seen_names = []
     results = []
 
