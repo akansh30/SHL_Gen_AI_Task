@@ -1,3 +1,5 @@
 #!/bin/bash
-echo "Starting SHL Recommender API..."
-exec uvicorn recommender_api:app --host 0.0.0.0 --port 10000
+
+# Activate virtual env if needed (optional on Railway)
+echo "Running startup script..."
+uvicorn recommender_api:app --host 0.0.0.0 --port $PORT
